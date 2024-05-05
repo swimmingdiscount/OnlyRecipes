@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Update Reply</h2>
+    <form method="POST" action="">
+        {{ form.hidden_tag() }}
+        <div>{{ form.content.label }} {{ form.content() }}</div>
+        <div>{{ form.submit() }}</div>
+    </form>
+{% endblock %}

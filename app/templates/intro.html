@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+    <div class="jumbotron">
+        <h1>Welcome to OnlyRecipes!</h1>
+        <p>Discover and share recipes with others. Create your own recipe requests or help others by answering their requests.</p>
+        <p>
+            <a class="btn btn-primary btn-lg" href="{{ url_for('register') }}" role="button">Register</a>
+            <a class="btn btn-secondary btn-lg" href="{{ url_for('login') }}" role="button">Login</a>
+        </p>
+    </div>
+{% endblock %}

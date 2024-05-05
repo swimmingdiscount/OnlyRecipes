@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+{% block content %}
+    <h2>Find Recipe Requests</h2>
+    <form id="searchForm">
+        <div class="input-group mb-3">
+            <input type="text" id="searchBox" class="form-control" placeholder="Search for recipes..." aria-label="Search">
+            <select id="mealTypeSelect" class="form-select">
+                <option value="">All Meals</option>
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+                <option value="other">Other</option>
+            </select>
+            <button class="btn btn-outline-secondary" type="submit">Search</button>
+        </div>
+    </form>
+    <div id="requestsList">
+        {% include 'partials/recipe_requests_list.html' %}
+    </div>
+
+    <script>
+        $(document).ready(function() {
+            $('#searchForm').submit(function(e) {
+                e.preventDefault();
+                var searchQuery = $('#searchBox').val();
+                var mealType = $('#mealTypeSelect').val();
+                $.ajax({
+                    url: "{{ url_for('recipe_requests') }}?query=" + searchQuery + "&meal_type=" + mealType,
+                    type: "GET",
+                    success: function(data) {
+                        $('#requestsList').html(data);
+                    }
+                });
+            });
+        });
+    </script>
+{% endblock %}
