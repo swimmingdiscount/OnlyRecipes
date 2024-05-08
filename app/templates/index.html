@@ -2,9 +2,9 @@
 {% block content %}
     <div class="container">
         <h1>Welcome to OnlyRecipes</h1>
-        <form action="{{ url_for('search') }}" method="get" class="mb-3">
+        <form action="{{ url_for('main.search') }}" method="GET" class="mb-3">
             <div class="input-group">
-                <input type="text" class="form-control" placeholder="Search by ingredients (comma-separated)" name="ingredient">
+                <input type="text" class="form-control" placeholder="Search by ingredients (comma-separated)" name="search_query">
                 <select class="form-select" name="meal_type">
                     <option value="">All</option>
                     <option value="breakfast">Breakfast</option>
@@ -15,20 +15,46 @@
                 <button class="btn btn-outline-primary" type="submit">Search</button>
             </div>
         </form>
-        {% if requests %}
-            <h2>Search Results</h2>
-            <ul class="list-group">
-                {% for request in requests %}
-                    <li class="list-group-item">
-                        <h5>{{ request.title }}</h5>
-                        <p>{{ request.description }}</p>
-                        <p>Ingredients: {{ ', '.join(request.ingredients.names) }}</p>
-                        <a href="{{ url_for('recipe_requests', id=request.id) }}" class="btn btn-primary">View Recipe</a>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% else %}
-            <p>No recipes found.</p>
-        {% endif %}
+        <div id="search-results">
+            <!-- Search results will be displayed here -->
+        </div>
     </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function() {
+        // Function to handle form submission and update search results
+        $("form").submit(function(event) {
+            event.preventDefault(); // Prevent the default form submission
+
+            // Get the form data
+            var formData = $(this).serialize();
+
+            // Send an AJAX request to the server with the form data
+            $.ajax({
+                type: "GET",
+                url: "{{ url_for('main.search') }}",
+                data: formData,
+                dataType: "json", // Expect JSON response from the server
+                success: function(response) {
+                    // Update the search results section with the received data
+                    if (response.requests.length > 0) {
+                        var searchResults = '<h2>Search Results for "' + response.search_query + '"</h2><ul class="list-group">';
+                        $.each(response.requests, function(index, request) {
+                            searchResults += '<li class="list-group-item"><h5>' + request.title + '</h5><p>' + request.description + '</p><p>Meal Type: ' + request.meal_type + '</p><p>Author: ' + request.author + '</p></li>';
+                        });
+                        searchResults += '</ul>';
+                    } else {
+                        var searchResults = '<p>No results found.</p>';
+                    }
+                    $("#search-results").html(searchResults);
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error:", error); // Log any errors to the console
+                }
+            });
+        });
+    });
+</script>
 {% endblock %}

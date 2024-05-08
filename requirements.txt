@@ -6,3 +6,4 @@ Werkzeug
 WTForms
 SQLAlchemy
 Jinja2
+email_validator

@@ -25,7 +25,7 @@
                 var searchQuery = $('#searchBox').val();
                 var mealType = $('#mealTypeSelect').val();
                 $.ajax({
-                    url: "{{ url_for('recipe_requests') }}?query=" + searchQuery + "&meal_type=" + mealType,
+                    url: "{{ url_for('main.recipe_requests') }}?query=" + searchQuery + "&meal_type=" + mealType,
                     type: "GET",
                     success: function(data) {
                         $('#requestsList').html(data);

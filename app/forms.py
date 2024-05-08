@@ -36,6 +36,7 @@ class RecipeRequestForm(FlaskForm):
         ('other', 'Other')
     ], default='other', validators=[DataRequired()])
     submit = SubmitField('Submit')
+
 class RecipeReplyForm(FlaskForm):
     content = TextAreaField('Reply', validators=[DataRequired()])
     submit = SubmitField('Submit')

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+  <h2>Search Results for "{{ search_query }}"</h2>
+  <form action="{{ url_for('main.search') }}" method="GET">
+    <input type="text" name="search_query" value="{{ search_query }}">
+    <button type="submit">Search</button>
+  </form>
+  <div id="search-results">
+    {% if requests %}
+      <ul>
+        {% for request in requests %}
+          <li>
+            <h3>{{ request.title }}</h3>
+            <p>{{ request.description }}</p>
+            <p>Meal Type: {{ request.meal_type }}</p>
+            <p>Author: {{ request.author }}</p>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>No results found.</p>
+    {% endif %}
+  </div>
+{% endblock %}
