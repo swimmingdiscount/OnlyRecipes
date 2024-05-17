@@ -96,11 +96,11 @@ def logout():
 
 # RECIPE REQUESTS
 
-@bp.route('/create_recipe_request', methods=['POST'])
+@bp.route('/create_recipe_request', methods=['GET', 'POST'])
 @login_required
 def create_recipe_request():
     form = RecipeRequestForm()
-    if form.validate_on_submit():
+    if request.method == 'POST' and form.validate_on_submit():
         recipe_request = RecipeRequest(
             title=form.title.data,
             description=form.description.data,
@@ -111,7 +111,7 @@ def create_recipe_request():
         db.session.commit()
         flash('Your recipe request has been created!', 'success')
         return redirect(url_for('main.home'))
-    return render_template('create_recipe_request.html', title='New Recipe Request', form=form)
+    return render_template('create_requests.html', title='New Recipe Request', form=form)
 
 @bp.route('/update_recipe_request/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -131,7 +131,7 @@ def update_recipe_request(id):
         form.title.data = recipe_request.title
         form.description.data = recipe_request.description
         form.meal_type.data = recipe_request.meal_type
-    return render_template('create_recipe_request.html', title='Update Recipe Request', form=form)
+    return render_template('create_requests.html', title='Update Recipe Request', form=form)
 
 @bp.route('/delete_recipe_request/<int:id>', methods=['POST'])
 @login_required
