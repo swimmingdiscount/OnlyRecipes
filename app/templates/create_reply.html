@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Reply to: {{ request.title }}</h1>
+    <form method="POST" action="{{ url_for('main.create_reply', request_id=request.id) }}">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.content.label(class="form-label") }}
+            {{ form.content(class="form-control", rows="5") }}
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Submit Reply</button>
+    </form>
+</div>
+{% endblock %}

@@ -25,7 +25,7 @@
                 {% if recipe_requests %}
                     {% for request in recipe_requests %}
                         <li class="list-group-item">
-                            <h5><a href="{{ url_for('main.update_recipe_request', id=request.id) }}">{{ request.title }}</a></h5>
+                            <h5><a href="{{ url_for('main.view_recipe_request', id=request.id) }}">{{ request.title }}</a></h5>
                             <p>{{ request.description }}</p>
                             <small class="text-muted">Posted on: {{ request.created_at }}</small>
                         </li>
@@ -41,7 +41,7 @@
                 {% if recipe_replies %}
                     {% for reply in recipe_replies %}
                         <li class="list-group-item">
-                            <h5><a href="{{ url_for('main.update_reply', id=reply.id) }}">{{ reply.content }}</a></h5>
+                            <h5><a href="{{ url_for('main.view_reply', id=reply.id) }}">{{ reply.content }}</a></h5>
                             <p>{{ reply.content }}</p>
                             <small class="text-muted">Replied on: {{ reply.created_at }}</small>
                         </li>
@@ -58,7 +58,7 @@
             {% if latest_recipes %}
                 {% for recipe in latest_recipes %}
                     <li class="list-group-item">
-                        <h5><a href="{{ url_for('main.update_recipe', recipe_id=recipe.id) }}">{{ recipe.title }}</a></h5>
+                        <h5><a href="{{ url_for('main.view_recipe', id=recipe.id) }}">{{ recipe.title }}</a></h5>
                         <p>{{ recipe.instructions }}</p>
                         <small class="text-muted">Posted on: {{ recipe.created_at }}</small>
                     </li>

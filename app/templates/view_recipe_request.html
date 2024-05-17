@@ -19,7 +19,38 @@
                 {% endfor %}
             </ul>
 
-            <a href="{{ url_for('main.index') }}" class="btn btn-primary">Back to Home</a>
+            <h3>Comments</h3>
+            <ul class="list-group">
+                {% for reply in request.replies %}
+                    <li class="list-group-item">
+                        <p>{{ reply.content }}</p>
+                        <small class="text-muted">By {{ reply.replier.username }} on {{ reply.created_at.strftime('%Y-%m-%d') }}</small>
+                        {% if reply.user_id == current_user.id %}
+                            <a href="{{ url_for('main.update_reply', id=reply.id) }}" class="btn btn-secondary btn-sm">Edit</a>
+                            <form action="{{ url_for('main.delete_reply', id=reply.id) }}" method="POST" class="d-inline">
+                                <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+                            </form>
+                        {% endif %}
+                    </li>
+                {% else %}
+                    <li class="list-group-item">No comments yet.</li>
+                {% endfor %}
+            </ul>
+
+            {% if current_user.is_authenticated %}
+                <form action="{{ url_for('main.create_reply', request_id=request.id) }}" method="POST" class="mt-3">
+                    {{ form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ form.content.label(class="form-label") }}
+                        {{ form.content(class="form-control", value="") }}
+                    </div>
+                    <button type="submit" class="btn btn-primary mt-2">Submit Comment</button>
+                </form>
+            {% else %}
+                <p class="mt-3"><a href="{{ url_for('main.login') }}">Log in</a> to add a comment.</p>
+            {% endif %}
+
+            <a href="{{ url_for('main.index') }}" class="btn btn-primary mt-3">Back to Home</a>
         </div>
     </div>
 </div>

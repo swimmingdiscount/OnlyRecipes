@@ -46,7 +46,7 @@ def register():
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
-        flash('Your account has been created! You are now able to log in', 'success')
+        flash('Your account has been created! You have been logged in', 'success')
         return redirect(url_for('main.login'))
     return render_template('register.html', title='Register', form=form)
 
@@ -61,7 +61,6 @@ def account():
 @bp.route('/account/security')
 @login_required
 def account_security():
-    # Create and populate form with current user's data
     form = UpdateAccountForm()
     form.username.data = current_user.username
     form.email.data = current_user.email
@@ -83,7 +82,6 @@ def update_security():
             return redirect(url_for('main.account'))
         else:
             flash('Current password is incorrect.', 'danger')
-    # Fetch user's recipe requests and replies again to display them in the account.html template
     recipe_requests = get_user_recipe_requests(current_user)
     recipe_replies = get_user_recipe_replies(current_user)
     return render_template('account.html', recipe_requests=recipe_requests, recipe_replies=recipe_replies, form=form, active_tab='security')
@@ -101,22 +99,22 @@ def logout():
 
 # RECIPE REQUESTS
 
-@bp.route('/create_recipe_request', methods=['GET', 'POST'])
-@login_required
-def create_recipe_request():
-    form = RecipeRequestForm()
-    if request.method == 'POST' and form.validate_on_submit():
-        recipe_request = RecipeRequest(
-            title=form.title.data,
-            description=form.description.data,
-            meal_type=form.meal_type.data,
+@bp.route('/view_recipe_request/<int:id>', methods=['GET', 'POST'])
+def view_recipe_request(id):
+    recipe_request = RecipeRequest.query.get_or_404(id)
+    form = RecipeReplyForm()
+    if form.validate_on_submit():
+        reply = RecipeReply(
+            content=form.content.data,
+            request_id=recipe_request.id,
             user_id=current_user.id
         )
-        db.session.add(recipe_request)
+        db.session.add(reply)
         db.session.commit()
-        flash('Your recipe request has been created!', 'success')
-        return redirect(url_for('main.home'))
-    return render_template('create_requests.html', title='New Recipe Request', form=form)
+        flash('Your reply has been posted!', 'success')
+        return redirect(url_for('main.view_recipe_request', id=recipe_request.id))
+    return render_template('view_recipe_request.html', request=recipe_request, form=form)
+
 
 @bp.route('/update_recipe_request/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -154,18 +152,19 @@ def delete_recipe_request(id):
 @bp.route('/create-reply/<int:request_id>', methods=['GET', 'POST'])
 @login_required
 def create_reply(request_id):
+    request = RecipeRequest.query.get_or_404(request_id)
     form = RecipeReplyForm()
     if form.validate_on_submit():
         reply = RecipeReply(
             content=form.content.data,
-            request_id=request_id,
+            request_id=request.id,
             user_id=current_user.id
         )
         db.session.add(reply)
         db.session.commit()
         flash('Your reply has been posted!', 'success')
-        return redirect(url_for('main.home'))
-    return render_template('create_reply.html', title='New Reply', form=form)
+        return redirect(url_for('main.view_recipe_request', id=request_id))
+    return render_template('create_reply.html', title='New Reply', form=form, request=request)
 
 @bp.route('/update-reply/<int:id>', methods=['GET', 'POST'])
 @login_required
@@ -248,7 +247,6 @@ def search():
         matching_replies = []
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # Partial refresh: Generate HTML string
         rendered_html_requests = render_template_string(
             """
             {% for request in requests %}
@@ -308,11 +306,6 @@ def view_reply(id):
     reply = RecipeReply.query.get_or_404(id)
     return render_template('view_reply.html', reply=reply)
 
-@bp.route('/view_recipe_request/<int:id>', methods=['GET'])
-def view_recipe_request(id):
-    request = RecipeRequest.query.get_or_404(id)
-    return render_template('view_recipe_request.html', request=request)
-
 @bp.route('/view_recipe/<string:id>', methods=['GET'])
 def view_recipe(id):
     recipe = Recipe.query.get_or_404(id)
@@ -333,20 +326,20 @@ def add_recipe():
             title=form.title.data,
             ingredients=form.ingredients.data,
             instructions=form.instructions.data,
-            created_at=datetime.utcnow(),  # Automatically set the created_at time
+            created_at=datetime.utcnow(),
             user_id=current_user.id  
         )
         db.session.add(new_recipe)
         db.session.commit()
         flash('Recipe added successfully!', 'success')
-        return redirect(url_for('main.home'))  # Redirect to the main page or any other page
+        return redirect(url_for('main.home'))
 
     return render_template('add_recipe.html', form=form)
 
-@bp.route('/update_recipe/<recipe_id>', methods=['GET', 'POST'])
+@bp.route('/update_recipe/<string:id>', methods=['GET', 'POST'])
 @login_required
-def update_recipe(recipe_id):
-    recipe = Recipe.query.get_or_404(recipe_id)
+def update_recipe(id):
+    recipe = Recipe.query.get_or_404(id)
     if recipe.user_id != current_user.id:
         abort(403)  # Forbidden, user trying to edit a recipe they don't own
     
@@ -364,10 +357,10 @@ def update_recipe(recipe_id):
         form.instructions.data = recipe.instructions
     return render_template('update_recipe.html', title='Update Recipe', form=form, recipe=recipe)
 
-@bp.route('/delete_recipe/<recipe_id>', methods=['POST'])
+@bp.route('/delete_recipe/<string:id>', methods=['POST'])
 @login_required
-def delete_recipe(recipe_id):
-    recipe = Recipe.query.get_or_404(recipe_id)
+def delete_recipe(id):
+    recipe = Recipe.query.get_or_404(id)
     if recipe.user_id != current_user.id:
         abort(403)  # Forbidden, user trying to delete a recipe they don't own
     
@@ -375,3 +368,20 @@ def delete_recipe(recipe_id):
     db.session.commit()
     flash('Your recipe has been deleted!', 'success')
     return redirect(url_for('main.account'))
+
+@bp.route('/create_recipe_request', methods=['GET', 'POST'])
+@login_required
+def create_recipe_request():
+    form = RecipeRequestForm()
+    if form.validate_on_submit():
+        recipe_request = RecipeRequest(
+            title=form.title.data,
+            description=form.description.data,
+            meal_type=form.meal_type.data,
+            user_id=current_user.id
+        )
+        db.session.add(recipe_request)
+        db.session.commit()
+        flash('Your recipe request has been created!', 'success')
+        return redirect(url_for('main.home'))
+    return render_template('create_requests.html', title='Create Recipe Request', form=form)
