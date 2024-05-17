@@ -44,6 +44,33 @@
                         {{ form.content.label(class="form-label") }}
                         {{ form.content(class="form-control", value="") }}
                     </div>
+                    <div class="form-group form-check">
+                        {{ form.add_as_recipe(class="form-check-input") }}
+                        {{ form.add_as_recipe.label(class="form-check-label") }}
+                    </div>
+                    <div id="recipeFields" style="display: none;">
+                        <div class="form-group">
+                            {{ form.recipe_title.label(class="form-label") }}
+                            {{ form.recipe_title(class="form-control") }}
+                            {% if form.recipe_title.errors %}
+                                <div class="text-danger">{{ form.recipe_title.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ form.recipe_ingredients.label(class="form-label") }}
+                            {{ form.recipe_ingredients(class="form-control") }}
+                            {% if form.recipe_ingredients.errors %}
+                                <div class="text-danger">{{ form.recipe_ingredients.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            {{ form.recipe_instructions.label(class="form-label") }}
+                            {{ form.recipe_instructions(class="form-control") }}
+                            {% if form.recipe_instructions.errors %}
+                                <div class="text-danger">{{ form.recipe_instructions.errors[0] }}</div>
+                            {% endif %}
+                        </div>
+                    </div>
                     <button type="submit" class="btn btn-primary mt-2">Submit Comment</button>
                 </form>
             {% else %}
@@ -54,4 +81,19 @@
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addAsRecipeCheckbox = document.querySelector('#add_as_recipe');
+        const recipeFields = document.querySelector('#recipeFields');
+
+        addAsRecipeCheckbox.addEventListener('change', function() {
+            if (this.checked) {
+                recipeFields.style.display = 'block';
+            } else {
+                recipeFields.style.display = 'none';
+            }
+        });
+    });
+</script>
 {% endblock %}

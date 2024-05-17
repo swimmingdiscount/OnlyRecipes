@@ -39,8 +39,30 @@ class RecipeRequestForm(FlaskForm):
     submit = SubmitField('Submit')
 
 class RecipeReplyForm(FlaskForm):
-    content = TextAreaField('Reply', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+    content = TextAreaField('Content', validators=[DataRequired()])
+    add_as_recipe = BooleanField('Add this as a recipe')
+    recipe_title = StringField('Recipe Title')
+    recipe_ingredients = TextAreaField('Ingredients')
+    recipe_instructions = TextAreaField('Instructions')
+    submit = SubmitField('Post Reply')
+
+    def validate(self):
+        rv = FlaskForm.validate(self)
+        if not rv:
+            return False
+
+        if self.add_as_recipe.data:
+            if not self.recipe_title.data:
+                self.recipe_title.errors.append('This field is required.')
+                return False
+            if not self.recipe_ingredients.data:
+                self.recipe_ingredients.errors.append('This field is required.')
+                return False
+            if not self.recipe_instructions.data:
+                self.recipe_instructions.errors.append('This field is required.')
+                return False
+
+        return True
 
 class UpdateAccountForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=2, max=20)])
