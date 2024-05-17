@@ -4,21 +4,12 @@
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-12">
-            <h1>Reply Details</h1>
-            <p><strong>Replier:</strong> {{ reply.replier.username }}</p>
-            <p><strong>Date Posted:</strong> {{ reply.created_at.strftime('%Y-%m-%d') }}</p>
-            <p><strong>Content:</strong> {{ reply.content }}</p>
-
-            <h3>Ingredients</h3>
-            <ul>
-                {% for ingredient in reply.ingredients %}
-                    <li>{{ ingredient.name }}</li>
-                {% else %}
-                    <li>No ingredients listed.</li>
-                {% endfor %}
-            </ul>
-
-            <a href="{{ url_for('main.index') }}" class="btn btn-primary">Back to Home</a>
+            <h1>Reply by {{ reply.replier.username }}</h1>
+            <p>{{ reply.content }}</p>
+            <small class="text-muted">Replied on: {{ reply.created_at.strftime('%Y-%m-%d') }}</small>
+            
+            <a href="{{ url_for('main.view_recipe_request', id=reply.request_id, reply_id=reply.id) }}" class="btn btn-primary mt-3">Go to Thread</a>
+            <a href="{{ url_for('main.index') }}" class="btn btn-secondary mt-3">Back to Home</a>
         </div>
     </div>
 </div>

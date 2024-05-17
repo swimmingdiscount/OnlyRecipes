@@ -120,6 +120,8 @@ def create_recipe_request():
 def view_recipe_request(id):
     recipe_request = RecipeRequest.query.get_or_404(id)
     form = RecipeReplyForm()
+    highlighted_reply_id = request.args.get('reply_id', type=int)
+
     if form.validate_on_submit():
         reply = RecipeReply(
             content=form.content.data,
@@ -127,10 +129,20 @@ def view_recipe_request(id):
             user_id=current_user.id
         )
         db.session.add(reply)
+        if form.add_as_recipe.data:
+            new_recipe = Recipe(
+                title=form.recipe_title.data,
+                ingredients=form.recipe_ingredients.data,
+                instructions=form.recipe_instructions.data,
+                created_at=datetime.utcnow(),
+                user_id=current_user.id
+            )
+            db.session.add(new_recipe)
         db.session.commit()
         flash('Your reply has been posted!', 'success')
         return redirect(url_for('main.view_recipe_request', id=recipe_request.id))
-    return render_template('view_recipe_request.html', request=recipe_request, form=form)
+    return render_template('view_recipe_request.html', request=recipe_request, form=form, highlighted_reply_id=highlighted_reply_id)
+
 
 @bp.route('/update_recipe_request/<int:id>', methods=['GET', 'POST'])
 @login_required

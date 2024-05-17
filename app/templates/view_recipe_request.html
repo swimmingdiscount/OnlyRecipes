@@ -22,7 +22,7 @@
             <h3>Comments</h3>
             <ul class="list-group">
                 {% for reply in request.replies %}
-                    <li class="list-group-item">
+                    <li class="list-group-item {% if reply.id == highlighted_reply_id %}bg-warning{% endif %}">
                         <p>{{ reply.content }}</p>
                         <small class="text-muted">By {{ reply.replier.username }} on {{ reply.created_at.strftime('%Y-%m-%d') }}</small>
                         {% if reply.user_id == current_user.id %}
