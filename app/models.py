@@ -5,9 +5,19 @@ from flask_login import UserMixin
 from flask_sqlalchemy import SQLAlchemy
 from app import db, login_manager
 
-# Define the association table for many-to-many relationship between RecipeRequest and Ingredient
-recipe_ingredients = db.Table('recipe_ingredients',
+# Define the association tables for many-to-many relationships
+recipe_request_ingredients = db.Table('recipe_request_ingredients',
     db.Column('recipe_request_id', db.Integer, db.ForeignKey('recipe_request.id'), primary_key=True),
+    db.Column('ingredient_id', db.Integer, db.ForeignKey('ingredient.id'), primary_key=True)
+)
+
+recipe_ingredients = db.Table('recipe_ingredients',
+    db.Column('recipe_id', db.String(36), db.ForeignKey('recipe.id'), primary_key=True),
+    db.Column('ingredient_id', db.Integer, db.ForeignKey('ingredient.id'), primary_key=True)
+)
+
+recipe_reply_ingredients = db.Table('recipe_reply_ingredients',
+    db.Column('recipe_reply_id', db.Integer, db.ForeignKey('recipe_reply.id'), primary_key=True),
     db.Column('ingredient_id', db.Integer, db.ForeignKey('ingredient.id'), primary_key=True)
 )
 
@@ -32,31 +42,29 @@ class User(db.Model, UserMixin):
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
 
-
 class RecipeRequest(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(100), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=False)
     meal_type = db.Column(db.String(50), nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
-    ingredients = db.relationship('Ingredient', secondary=recipe_ingredients, lazy='subquery', backref=db.backref('recipe_requests', lazy=True))
+    ingredients = db.relationship('Ingredient', secondary=recipe_request_ingredients, lazy='subquery', backref=db.backref('recipe_requests', lazy=True))
     
     # Foreign Key
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
-
 
 class Ingredient(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(50), unique=True)
 
-
 class Recipe(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     title = db.Column(db.String(120), nullable=False)
-    ingredients = db.Column(db.Text, nullable=False)
     instructions = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
+    meal_type = db.Column(db.String(50), nullable=True)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    ingredients = db.relationship('Ingredient', secondary=recipe_ingredients, lazy='subquery', backref=db.backref('recipes', lazy=True))
 
     def __repr__(self):
         return f'<Recipe {self.title}>'
@@ -65,6 +73,7 @@ class RecipeReply(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     content = db.Column(db.Text, nullable=False)
     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    ingredients = db.relationship('Ingredient', secondary=recipe_reply_ingredients, lazy='subquery', backref=db.backref('replies', lazy=True))
     
     # Foreign Keys
     request_id = db.Column(db.Integer, db.ForeignKey('recipe_request.id'), nullable=False)

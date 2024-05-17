@@ -1,36 +1,45 @@
 {% extends "base.html" %}
-{% block content %}
-    <div class="container">
-        <h2 id="welcomeMessage">Search Results for "{{ search_query }}"</h2>
-        <form id="searchForm" action="{{ url_for('main.search') }}" method="GET" class="mb-3">
-            <div class="input-group">
-                <input type="text" id="search_query" class="form-control" placeholder="Search by ingredients (comma-separated)" name="search_query" value="{{ search_query }}">
-                <select class="form-select" id="meal_type" name="meal_type">
-                    <option value="">All</option>
-                    <option value="breakfast" {% if meal_type == 'breakfast' %}selected{% endif %}>Breakfast</option>
-                    <option value="lunch" {% if meal_type == 'lunch' %}selected{% endif %}>Lunch</option>
-                    <option value="dinner" {% if meal_type == 'dinner' %}selected{% endif %}>Dinner</option>
-                    <option value="other" {% if meal_type == 'other' %}selected{% endif %}>Other</option>
-                </select>
-                <button class="btn btn-outline-primary" type="submit">Search</button>
-            </div>
-        </form>
-        <div id="search-results">
-            <ul class="list-group">
-                {% for request in requests %}
-                <li class="list-group-item">
-                    <h5>{{ request.title }}</h5>
-                    <p>{{ request.description }}</p>
-                    <a href="{{ url_for('view_request', id=request.id) }}" class="btn btn-info">View Details</a>
-                </li>
-                {% else %}
-                <li class="list-group-item">No recipe requests found.</li>
-                {% endfor %}
-            </ul>
-        </div>
-    </div>
-{% endblock %}
 
-{% block scripts %}
-<script src="{{ url_for('static', filename='js/search.js') }}"></script>
+{% block content %}
+<div class="container">
+    <h1>Search Results</h1>
+
+    <h2>Recipe Requests</h2>
+    <ul class="list-group">
+        {% for request in requests %}
+            <li class="list-group-item">
+                <h5>{{ request.title }}</h5>
+                <p>{{ request.description }}</p>
+                <a href="{{ url_for('main.view_request', id=request.id) }}" class="btn btn-info">View Details</a>
+            </li>
+        {% else %}
+            <li class="list-group-item">No recipe requests found.</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Recipes</h2>
+    <ul class="list-group">
+        {% for recipe in recipes %}
+            <li class="list-group-item">
+                <h5>{{ recipe.title }}</h5>
+                <p>{{ recipe.instructions }}</p>
+                <a href="{{ url_for('main.view_recipe', id=recipe.id) }}" class="btn btn-info">View Details</a>
+            </li>
+        {% else %}
+            <li class="list-group-item">No recipes found.</li>
+        {% endfor %}
+    </ul>
+
+    <h2>Recipe Replies</h2>
+    <ul class="list-group">
+        {% for reply in replies %}
+            <li class="list-group-item">
+                <h5>{{ reply.content }}</h5>
+                <a href="{{ url_for('main.view_reply', id=reply.id) }}" class="btn btn-info">View Details</a>
+            </li>
+        {% else %}
+            <li class="list-group-item">No recipe replies found.</li>
+        {% endfor %}
+    </ul>
+</div>
 {% endblock %}

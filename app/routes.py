@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, url_for, flash, redirect, request, jsonify, render_template_string
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db
-from app.models import User, RecipeRequest, RecipeReply, recipe_ingredients, Ingredient, Recipe
+from app.models import User, RecipeRequest, RecipeReply, Recipe, Ingredient, recipe_request_ingredients, recipe_ingredients, recipe_reply_ingredients
 from app.forms import LoginForm, RegistrationForm, RecipeRequestForm, RecipeReplyForm, UpdateAccountForm, RecipeForm
 from datetime import datetime
 
@@ -13,11 +13,6 @@ def index():
     recipe_requests = RecipeRequest.query.order_by(RecipeRequest.created_at.desc()).limit(5).all()
     recipe_replies = RecipeReply.query.order_by(RecipeReply.created_at.desc()).limit(5).all()
     latest_recipes = Recipe.query.order_by(Recipe.created_at.desc()).limit(5).all()
-    
-    print("Recipe Requests:", recipe_requests)  # Debug statement
-    print("Recipe Replies:", recipe_replies)    # Debug statement
-    print("Latest Recipes:", latest_recipes)    # Debug statement
-    
     return render_template('index.html', recipe_requests=recipe_requests, recipe_replies=recipe_replies, latest_recipes=latest_recipes)
 
 @bp.route('/home')
@@ -208,25 +203,59 @@ def search():
 
     if search_query:
         search_terms = [term.strip() for term in search_query.split(',')]
-        matching_requests = RecipeRequest.query \
-            .join(recipe_ingredients) \
-            .join(Ingredient) \
-            .filter(Ingredient.name.in_(search_terms)) \
+        
+        # Search in RecipeRequest
+        matching_requests_query = RecipeRequest.query \
+            .join(recipe_request_ingredients, RecipeRequest.id == recipe_request_ingredients.c.recipe_request_id) \
+            .join(Ingredient, recipe_request_ingredients.c.ingredient_id == Ingredient.id) \
+            .filter(Ingredient.name.in_(search_terms))
+
+        if meal_type:
+            matching_requests_query = matching_requests_query.filter_by(meal_type=meal_type)
+
+        matching_requests = matching_requests_query \
             .group_by(RecipeRequest.id) \
+            .order_by(db.func.count(Ingredient.id).desc()) \
+            .all()
+
+        # Search in Recipe
+        matching_recipes_query = Recipe.query \
+            .join(recipe_ingredients, Recipe.id == recipe_ingredients.c.recipe_id) \
+            .join(Ingredient, recipe_ingredients.c.ingredient_id == Ingredient.id) \
+            .filter(Ingredient.name.in_(search_terms))
+
+        if meal_type:
+            matching_recipes_query = matching_recipes_query.filter_by(meal_type=meal_type)
+
+        matching_recipes = matching_recipes_query \
+            .group_by(Recipe.id) \
+            .order_by(db.func.count(Ingredient.id).desc()) \
+            .all()
+
+        # Search in RecipeReply
+        matching_replies_query = RecipeReply.query \
+            .join(recipe_reply_ingredients, RecipeReply.id == recipe_reply_ingredients.c.recipe_reply_id) \
+            .join(Ingredient, recipe_reply_ingredients.c.ingredient_id == Ingredient.id) \
+            .filter(Ingredient.name.in_(search_terms))
+
+        matching_replies = matching_replies_query \
+            .group_by(RecipeReply.id) \
             .order_by(db.func.count(Ingredient.id).desc()) \
             .all()
     else:
         matching_requests = []
+        matching_recipes = []
+        matching_replies = []
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
         # Partial refresh: Generate HTML string
-        rendered_html = render_template_string(
+        rendered_html_requests = render_template_string(
             """
             {% for request in requests %}
             <li class="list-group-item">
                 <h5>{{ request.title }}</h5>
                 <p>{{ request.description }}</p>
-                <a href="{{ url_for('main.view_request', id=request.id) }}" class="btn btn-info">View Details</a>
+                <a href="{{ url_for('main.view_recipe_request', id=request.id) }}" class="btn btn-info">View Details</a>
             </li>
             {% else %}
             <li class="list-group-item">No recipe requests found.</li>
@@ -234,13 +263,60 @@ def search():
             """,
             requests=matching_requests
         )
+
+        rendered_html_recipes = render_template_string(
+            """
+            {% for recipe in recipes %}
+            <li class="list-group-item">
+                <h5>{{ recipe.title }}</h5>
+                <p>{{ recipe.instructions }}</p>
+                <a href="{{ url_for('main.view_recipe', id=recipe.id) }}" class="btn btn-info">View Details</a>
+            </li>
+            {% else %}
+            <li class="list-group-item">No recipes found.</li>
+            {% endfor %}
+            """,
+            recipes=matching_recipes
+        )
+
+        rendered_html_replies = render_template_string(
+            """
+            {% for reply in replies %}
+            <li class="list-group-item">
+                <h5>{{ reply.content }}</h5>
+                <a href="{{ url_for('main.view_reply', id=reply.id) }}" class="btn btn-info">View Details</a>
+            </li>
+            {% else %}
+            <li class="list-group-item">No recipe replies found.</li>
+            {% endfor %}
+            """,
+            replies=matching_replies
+        )
+
         return jsonify({
-            'html': rendered_html,
+            'html_requests': rendered_html_requests,
+            'html_recipes': rendered_html_recipes,
+            'html_replies': rendered_html_replies,
             'search_query': search_query,
             'meal_type': meal_type
         })
     else:
-        return render_template('search_results.html', requests=matching_requests, search_query=search_query, meal_type=meal_type)
+        return render_template('search_results.html', requests=matching_requests, recipes=matching_recipes, replies=matching_replies, search_query=search_query, meal_type=meal_type)
+
+@bp.route('/view_reply/<int:id>', methods=['GET'])
+def view_reply(id):
+    reply = RecipeReply.query.get_or_404(id)
+    return render_template('view_reply.html', reply=reply)
+
+@bp.route('/view_recipe_request/<int:id>', methods=['GET'])
+def view_recipe_request(id):
+    request = RecipeRequest.query.get_or_404(id)
+    return render_template('view_recipe_request.html', request=request)
+
+@bp.route('/view_recipe/<string:id>', methods=['GET'])
+def view_recipe(id):
+    recipe = Recipe.query.get_or_404(id)
+    return render_template('view_recipe.html', recipe=recipe)
 
 @bp.route('/view_request/<int:id>')
 @login_required
