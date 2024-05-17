@@ -68,7 +68,6 @@ class UpdateAccountForm(FlaskForm):
             raise ValidationError('Current password is incorrect.')
 
 class RecipeForm(FlaskForm):
-    title = StringField('Recipe Title', validators=[DataRequired()])
+    title = StringField('Title', validators=[DataRequired()])
+    ingredients = TextAreaField('Ingredients', validators=[DataRequired()])
     instructions = TextAreaField('Instructions', validators=[DataRequired()])
-    ingredients = StringField('Ingredients (comma-separated)', validators=[DataRequired()])
-    request_id = IntegerField('Recipe Request ID (optional)', validators=[Optional()])

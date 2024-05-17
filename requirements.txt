@@ -7,3 +7,4 @@ WTForms
 SQLAlchemy
 Jinja2
 email_validator
+uuid

@@ -1,8 +1,9 @@
 from flask import Blueprint, render_template, url_for, flash, redirect, request, jsonify, render_template_string
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db
-from app.models import User, RecipeRequest, RecipeReply, recipe_ingredients, Ingredient
-from app.forms import LoginForm, RegistrationForm, RecipeRequestForm, RecipeReplyForm, UpdateAccountForm
+from app.models import User, RecipeRequest, RecipeReply, recipe_ingredients, Ingredient, Recipe
+from app.forms import LoginForm, RegistrationForm, RecipeRequestForm, RecipeReplyForm, UpdateAccountForm, RecipeForm
+from datetime import datetime
 
 bp = Blueprint('main', __name__)  # 'main' is the name of your blueprint
 
@@ -232,9 +233,27 @@ def search():
     else:
         return render_template('search_results.html', requests=matching_requests, search_query=search_query, meal_type=meal_type)
 
-# Additional route to view recipe requests (not originally provided)
 @bp.route('/view_request/<int:id>')
 @login_required
 def view_request(id):
     recipe_request = RecipeRequest.query.get_or_404(id)
     return render_template('view_request.html', recipe_request=recipe_request)
+
+@bp.route('/add_recipe', methods=['GET', 'POST'])
+@login_required
+def add_recipe():
+    form = RecipeForm()
+    if form.validate_on_submit():
+        new_recipe = Recipe(
+            title=form.title.data,
+            ingredients=form.ingredients.data,
+            instructions=form.instructions.data,
+            created_at=datetime.utcnow(),  # Automatically set the created_at time
+            user_id=current_user.id  
+        )
+        db.session.add(new_recipe)
+        db.session.commit()
+        flash('Recipe added successfully!', 'success')
+        return redirect(url_for('main.home'))  # Redirect to the main page or any other page
+
+    return render_template('add_recipe.html', form=form)
