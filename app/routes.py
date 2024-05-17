@@ -8,12 +8,21 @@ from datetime import datetime
 bp = Blueprint('main', __name__)  # 'main' is the name of your blueprint
 
 @bp.route('/')
-def root():
-    return render_template('index.html')  # Render the home page directly
+@bp.route('/index')
+def index():
+    recipe_requests = RecipeRequest.query.order_by(RecipeRequest.created_at.desc()).limit(5).all()
+    recipe_replies = RecipeReply.query.order_by(RecipeReply.created_at.desc()).limit(5).all()
+    latest_recipes = Recipe.query.order_by(Recipe.created_at.desc()).limit(5).all()
+    
+    print("Recipe Requests:", recipe_requests)  # Debug statement
+    print("Recipe Replies:", recipe_replies)    # Debug statement
+    print("Latest Recipes:", latest_recipes)    # Debug statement
+    
+    return render_template('index.html', recipe_requests=recipe_requests, recipe_replies=recipe_replies, latest_recipes=latest_recipes)
 
 @bp.route('/home')
 def home():
-    return render_template('index.html')
+    return redirect(url_for('main.index'))
 
 @bp.route('/login', methods=['GET', 'POST'])
 def login():

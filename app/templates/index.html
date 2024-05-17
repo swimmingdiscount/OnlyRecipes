@@ -1,52 +1,72 @@
 {% extends "base.html" %}
 {% block content %}
-    <div class="container">
-        <h1 id="welcomeMessage">Welcome to OnlyRecipes</h1>
-        <form id="searchForm" action="{{ url_for('main.search') }}" method="GET" class="mb-3">
-            <div class="input-group">
-                <select class="form-select" id="meal_type" name="meal_type">
-                    <option value="">All</option>
-                    <option value="breakfast">Breakfast</option>
-                    <option value="lunch">Lunch</option>
-                    <option value="dinner">Dinner</option>
-                    <option value="other">Other</option>
-                </select>
-                <input type="text" id="search_query" class="form-control" placeholder="Search by ingredients (comma-separated)" name="search_query">
-                <button class="btn btn-outline-primary" type="submit">Search</button>
-            </div>
-        </form>
-        <div id="search-results">
-            <!-- Search results will be displayed here -->
+<div class="container">
+    <h1 id="welcomeMessage">Welcome to OnlyRecipes</h1>
+    <form id="searchForm" action="{{ url_for('main.search') }}" method="GET" class="mb-3">
+        <div class="input-group">
+            <select class="form-select" id="meal_type" name="meal_type">
+                <option value="">All</option>
+                <option value="breakfast">Breakfast</option>
+                <option value="lunch">Lunch</option>
+                <option value="dinner">Dinner</option>
+                <option value="other">Other</option>
+            </select>
+            <input type="text" id="search_query" class="form-control" placeholder="Search by ingredients (comma-separated)" name="search_query">
+            <button class="btn btn-outline-primary" type="submit">Search</button>
         </div>
+    </form>
+    <div id="search-results">
+        <!-- Search results will be displayed here -->
+    </div>
     <div class="row">
         <div class="col-md-8">
             <h2>Latest Recipe Requests</h2>
             <ul class="list-group">
-                {% for request in recipe_requests %}
-                    <li class="list-group-item">
-                        <h5><a href="{{ url_for('main.update_recipe_request', id=request.id) }}">{{ request.title }}</a></h5>
-                        <p>{{ request.description }}</p>
-                        <small class="text-muted">Posted on: {{ request.date_posted }}</small>
-                    </li>
+                {% if recipe_requests %}
+                    {% for request in recipe_requests %}
+                        <li class="list-group-item">
+                            <h5><a href="{{ url_for('main.update_recipe_request', id=request.id) }}">{{ request.title }}</a></h5>
+                            <p>{{ request.description }}</p>
+                            <small class="text-muted">Posted on: {{ request.created_at }}</small>
+                        </li>
+                    {% endfor %}
                 {% else %}
                     <li class="list-group-item">No recipe requests found.</li>
-                {% endfor %}
+                {% endif %}
             </ul>
         </div>
         <div class="col-md-4">
             <h2>Latest Replies</h2>
             <ul class="list-group">
-                {% for reply in recipe_replies %}
-                    <li class="list-group-item">
-                        <h5><a href="{{ url_for('main.update_reply', id=reply.id) }}">{{ reply.title }}</a></h5>
-                        <p>{{ reply.content }}</p>
-                        <small class="text-muted">Replied on: {{ reply.date_posted }}</small>
-                    </li>
+                {% if recipe_replies %}
+                    {% for reply in recipe_replies %}
+                        <li class="list-group-item">
+                            <h5><a href="{{ url_for('main.update_reply', id=reply.id) }}">{{ reply.content }}</a></h5>
+                            <p>{{ reply.content }}</p>
+                            <small class="text-muted">Replied on: {{ reply.created_at }}</small>
+                        </li>
+                    {% endfor %}
                 {% else %}
                     <li class="list-group-item">No recipe replies found.</li>
-                {% endfor %}
+                {% endif %}
             </ul>
         </div>
+    </div>
+    <div class="mt-4">
+        <h2>Latest Recipes</h2>
+        <ul class="list-group">
+            {% if latest_recipes %}
+                {% for recipe in latest_recipes %}
+                    <li class="list-group-item">
+                        <h5><a href="{{ url_for('main.update_recipe', recipe_id=recipe.id) }}">{{ recipe.title }}</a></h5>
+                        <p>{{ recipe.instructions }}</p>
+                        <small class="text-muted">Posted on: {{ recipe.created_at }}</small>
+                    </li>
+                {% endfor %}
+            {% else %}
+                <li class="list-group-item">No recipes found.</li>
+            {% endif %}
+        </ul>
     </div>
 </div>
 {% endblock %}
