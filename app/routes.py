@@ -49,10 +49,10 @@ def register():
 @bp.route('/account')
 @login_required
 def account():
-    # Fetch user's recipe requests and replies
-    recipe_requests = get_user_recipe_requests(current_user)
-    recipe_replies = get_user_recipe_replies(current_user)
-    return render_template('account.html', recipe_requests=recipe_requests, recipe_replies=recipe_replies, active_tab='main')
+    recipes = Recipe.query.filter_by(user_id=current_user.id).all()
+    recipe_requests = RecipeRequest.query.filter_by(user_id=current_user.id).all()
+    recipe_replies = RecipeReply.query.filter_by(user_id=current_user.id).all()
+    return render_template('account.html', recipes=recipes, recipe_requests=recipe_requests, recipe_replies=recipe_replies, active_tab='main')
 
 @bp.route('/account/security')
 @login_required
@@ -257,3 +257,23 @@ def add_recipe():
         return redirect(url_for('main.home'))  # Redirect to the main page or any other page
 
     return render_template('add_recipe.html', form=form)
+
+@bp.route('/update_recipe/<recipe_id>', methods=['GET', 'POST'])
+@login_required
+def update_recipe(recipe_id):
+    recipe = Recipe.query.get_or_404(recipe_id)
+    if recipe.author != current_user:
+        abort(403)
+    form = RecipeForm()
+    if form.validate_on_submit():
+        recipe.title = form.title.data
+        recipe.ingredients = form.ingredients.data
+        recipe.instructions = form.instructions.data
+        db.session.commit()
+        flash('Your recipe has been updated!', 'success')
+        return redirect(url_for('main.account'))
+    elif request.method == 'GET':
+        form.title.data = recipe.title
+        form.ingredients.data = recipe.ingredients
+        form.instructions.data = recipe.instructions
+    return render_template('update_recipe.html', title='Update Recipe', form=form, recipe=recipe)
