@@ -1,8 +1,8 @@
-from flask import Blueprint, render_template, url_for, flash, redirect, request, jsonify, render_template_string, current_app as app
+from flask import Blueprint, render_template, url_for, flash, redirect, request, jsonify, render_template_string
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db
 from app.models import User, RecipeRequest, RecipeReply, recipe_ingredients, Ingredient
-from app.forms import LoginForm, RegistrationForm, RecipeRequestForm, RecipeReplyForm
+from app.forms import LoginForm, RegistrationForm, RecipeRequestForm, RecipeReplyForm, UpdateAccountForm
 
 bp = Blueprint('main', __name__)  # 'main' is the name of your blueprint
 
@@ -48,7 +48,46 @@ def register():
 @bp.route('/account')
 @login_required
 def account():
-    return render_template('account.html')
+    # Fetch user's recipe requests and replies
+    recipe_requests = get_user_recipe_requests(current_user)
+    recipe_replies = get_user_recipe_replies(current_user)
+    return render_template('account.html', recipe_requests=recipe_requests, recipe_replies=recipe_replies, active_tab='main')
+
+@bp.route('/account/security')
+@login_required
+def account_security():
+    # Create and populate form with current user's data
+    form = UpdateAccountForm()
+    form.username.data = current_user.username
+    form.email.data = current_user.email
+    return render_template('partials/account_security.html', form=form, active_tab='security')
+
+@bp.route('/account/security/update', methods=['POST'])
+@login_required
+def update_security():
+    form = UpdateAccountForm()
+    if form.validate_on_submit():
+        user = User.query.filter_by(id=current_user.id).first()
+        if user and user.check_password(form.current_password.data):
+            current_user.username = form.username.data
+            current_user.email = form.email.data
+            if form.new_password.data:
+                current_user.set_password(form.new_password.data)
+            db.session.commit()
+            flash('Your account has been updated!', 'success')
+            return redirect(url_for('main.account'))
+        else:
+            flash('Current password is incorrect.', 'danger')
+    # Fetch user's recipe requests and replies again to display them in the account.html template
+    recipe_requests = get_user_recipe_requests(current_user)
+    recipe_replies = get_user_recipe_replies(current_user)
+    return render_template('account.html', recipe_requests=recipe_requests, recipe_replies=recipe_replies, form=form, active_tab='security')
+
+def get_user_recipe_requests(user):
+    return RecipeRequest.query.filter_by(user_id=user.id).all()
+
+def get_user_recipe_replies(user):
+    return RecipeReply.query.filter_by(user_id=user.id).all()
 
 @bp.route('/logout')
 def logout():
@@ -78,7 +117,7 @@ def create_recipe_request():
 @login_required
 def update_recipe_request(id):
     recipe_request = RecipeRequest.query.get_or_404(id)
-    if recipe_request.author != current_user:
+    if recipe_request.user_id != current_user.id:
         abort(403)
     form = RecipeRequestForm()
     if form.validate_on_submit():
@@ -98,7 +137,7 @@ def update_recipe_request(id):
 @login_required
 def delete_recipe_request(id):
     recipe_request = RecipeRequest.query.get_or_404(id)
-    if recipe_request.author != current_user:
+    if recipe_request.user_id != current_user.id:
         abort(403)
     db.session.delete(recipe_request)
     db.session.commit()
@@ -115,7 +154,7 @@ def create_reply(request_id):
         reply = RecipeReply(
             content=form.content.data,
             request_id=request_id,
-            author=current_user
+            user_id=current_user.id
         )
         db.session.add(reply)
         db.session.commit()
@@ -127,7 +166,7 @@ def create_reply(request_id):
 @login_required
 def update_reply(id):
     reply = RecipeReply.query.get_or_404(id)
-    if reply.author != current_user:
+    if reply.user_id != current_user.id:
         abort(403)
     form = RecipeReplyForm()
     if form.validate_on_submit():
@@ -143,7 +182,7 @@ def update_reply(id):
 @login_required
 def delete_reply(id):
     reply = RecipeReply.query.get_or_404(id)
-    if reply.author != current_user:
+    if reply.user_id != current_user.id:
         abort(403)
     db.session.delete(reply)
     db.session.commit()
@@ -177,7 +216,7 @@ def search():
             <li class="list-group-item">
                 <h5>{{ request.title }}</h5>
                 <p>{{ request.description }}</p>
-                <a href="{{ url_for('view_request', id=request.id) }}" class="btn btn-info">View Details</a>
+                <a href="{{ url_for('main.view_request', id=request.id) }}" class="btn btn-info">View Details</a>
             </li>
             {% else %}
             <li class="list-group-item">No recipe requests found.</li>
@@ -192,3 +231,10 @@ def search():
         })
     else:
         return render_template('search_results.html', requests=matching_requests, search_query=search_query, meal_type=meal_type)
+
+# Additional route to view recipe requests (not originally provided)
+@bp.route('/view_request/<int:id>')
+@login_required
+def view_request(id):
+    recipe_request = RecipeRequest.query.get_or_404(id)
+    return render_template('view_request.html', recipe_request=recipe_request)

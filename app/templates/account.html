@@ -1,8 +1,61 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container">
-    <h1>Account</h1>
-    <!-- Add your account information here -->
+<div class="container mt-5">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-md-3">
+            <div class="list-group">
+                <a href="{{ url_for('main.account') }}" class="list-group-item list-group-item-action {% if active_tab == 'main' %}active{% endif %}">Main</a>
+                <a href="{{ url_for('main.account_security') }}" class="list-group-item list-group-item-action {% if active_tab == 'security' %}active{% endif %}" id="security-link">Security</a>
+            </div>
+        </div>
+        <!-- Main content -->
+        <div class="col-md-9" id="account-content">
+            {% if active_tab == 'main' %}
+                <h1>Account</h1>
+                <!-- Recipe Requests -->
+                <div class="mb-4">
+                    <h2>Recipe Requests</h2>
+                    <ul class="list-group">
+                        {% if recipe_requests %}
+                            {% for request in recipe_requests %}
+                                <li class="list-group-item">
+                                    <h5><a href="{{ url_for('main.update_recipe_request', id=request.id) }}">{{ request.title }}</a></h5>
+                                    <p>{{ request.description }}</p>
+                                    <small class="text-muted">Posted on: {{ request.date_posted }}</small>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item">No recipe requests found.</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <!-- Recipe Replies -->
+                <div>
+                    <h2>Recipe Replies</h2>
+                    <ul class="list-group">
+                        {% if recipe_replies %}
+                            {% for reply in recipe_replies %}
+                                <li class="list-group-item">
+                                    <h5><a href="{{ url_for('main.update_reply', id=reply.id) }}">{{ reply.title }}</a></h5>
+                                    <p>{{ reply.content }}</p>
+                                    <small class="text-muted">Replied on: {{ reply.date_posted }}</small>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item">No recipe replies found.</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            {% elif active_tab == 'security' %}
+                {% include 'partials/account_security.html' %}
+            {% endif %}
+        </div>
+    </div>
 </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/account.js') }}"></script>
 {% endblock %}

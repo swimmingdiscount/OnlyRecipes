@@ -1,0 +1,27 @@
+<h1>Security</h1>
+<form method="POST" action="{{ url_for('main.update_security') }}">
+    {{ form.hidden_tag() }}
+    <div class="form-group mb-3">
+        {{ form.username.label(class="form-label") }}
+        {{ form.username(class="form-control") }}
+    </div>
+    <div class="form-group mb-3">
+        {{ form.email.label(class="form-label") }}
+        {{ form.email(class="form-control") }}
+    </div>
+    <div class="form-group mb-3">
+        {{ form.current_password.label(class="form-label") }}
+        {{ form.current_password(class="form-control") }}
+    </div>
+    <div class="form-group mb-3">
+        {{ form.new_password.label(class="form-label") }}
+        {{ form.new_password(class="form-control") }}
+    </div>
+    <div class="form-group mb-3">
+        {{ form.confirm_new_password.label(class="form-label") }}
+        {{ form.confirm_new_password(class="form-control") }}
+    </div>
+    <div class="text-center">
+        {{ form.submit(class="btn btn-primary") }}
+    </div>
+</form>
