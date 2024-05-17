@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, url_for, flash, redirect, request, jsonify, current_app as app
+from flask import Blueprint, render_template, url_for, flash, redirect, request, jsonify, render_template_string, current_app as app
 from flask_login import login_user, logout_user, current_user, login_required
 from app import db
 from app.models import User, RecipeRequest, RecipeReply, recipe_ingredients, Ingredient
@@ -154,36 +154,41 @@ def delete_reply(id):
 
 @bp.route('/search', methods=['GET', 'POST'])
 def search():
-    if request.method == 'POST':
-        search_query = request.args.get('search_query', '')
-        meal_type = request.args.get('meal_type', '')
-        search_query = request.form.get('search_query', '')
-        return redirect(url_for('main.search', search_query=search_query))
-    else:
-        search_query = request.form.get('search_query', '')
-        meal_type = request.form.get('meal_type', '')
-        if search_query:
-            search_terms = [term.strip() for term in search_query.split(',')]
-            matching_requests = RecipeRequest.query \
-                .join(recipe_ingredients) \
-                .join(Ingredient) \
-                .filter(Ingredient.name.in_(search_terms)) \
-                .group_by(RecipeRequest.id) \
-                .order_by(db.func.count(Ingredient.id).desc()) \
-                .all()
-        else:
-            matching_requests = []
+    search_query = request.args.get('search_query', '')
+    meal_type = request.args.get('meal_type', '')
 
-        if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
-        # Partial refresh: Return JSON response
-            return jsonify({
-            'requests': [{
-                'title': request.title,
-                'description': request.description,
-                'ingredients': [ingredient.name for ingredient in request.ingredients],
-                'url': url_for('main.recipe_requests', id=request.id)  # Replace with actual URL
-            } for request in matching_requests]
+    if search_query:
+        search_terms = [term.strip() for term in search_query.split(',')]
+        matching_requests = RecipeRequest.query \
+            .join(recipe_ingredients) \
+            .join(Ingredient) \
+            .filter(Ingredient.name.in_(search_terms)) \
+            .group_by(RecipeRequest.id) \
+            .order_by(db.func.count(Ingredient.id).desc()) \
+            .all()
+    else:
+        matching_requests = []
+
+    if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+        # Partial refresh: Generate HTML string
+        rendered_html = render_template_string(
+            """
+            {% for request in requests %}
+            <li class="list-group-item">
+                <h5>{{ request.title }}</h5>
+                <p>{{ request.description }}</p>
+                <a href="{{ url_for('view_request', id=request.id) }}" class="btn btn-info">View Details</a>
+            </li>
+            {% else %}
+            <li class="list-group-item">No recipe requests found.</li>
+            {% endfor %}
+            """,
+            requests=matching_requests
+        )
+        return jsonify({
+            'html': rendered_html,
+            'search_query': search_query,
+            'meal_type': meal_type
         })
-        else:
-        # Full page refresh: Render HTML template
-            return render_template('index.html', requests=matching_requests)
+    else:
+        return render_template('search_results.html', requests=matching_requests, search_query=search_query, meal_type=meal_type)
