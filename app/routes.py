@@ -262,8 +262,9 @@ def add_recipe():
 @login_required
 def update_recipe(recipe_id):
     recipe = Recipe.query.get_or_404(recipe_id)
-    if recipe.author != current_user:
-        abort(403)
+    if recipe.user_id != current_user.id:
+        abort(403)  # Forbidden, user trying to edit a recipe they don't own
+    
     form = RecipeForm()
     if form.validate_on_submit():
         recipe.title = form.title.data
@@ -277,3 +278,15 @@ def update_recipe(recipe_id):
         form.ingredients.data = recipe.ingredients
         form.instructions.data = recipe.instructions
     return render_template('update_recipe.html', title='Update Recipe', form=form, recipe=recipe)
+
+@bp.route('/delete_recipe/<recipe_id>', methods=['POST'])
+@login_required
+def delete_recipe(recipe_id):
+    recipe = Recipe.query.get_or_404(recipe_id)
+    if recipe.user_id != current_user.id:
+        abort(403)  # Forbidden, user trying to delete a recipe they don't own
+    
+    db.session.delete(recipe)
+    db.session.commit()
+    flash('Your recipe has been deleted!', 'success')
+    return redirect(url_for('main.account'))
