@@ -24,15 +24,14 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('main.create_recipe_request') }}">Create a Recipe Request</a>
                     </li>
-                    
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('main.account') }}">Account</a>
-                    </li>
                     {% endif %}
                 </ul>
             </div>
             <ul class="navbar-nav ml-auto">
                 {% if current_user.is_authenticated %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.account') }}">Account</a>
+                </li>
                 <li class="nav-item">
                     <a class="nav-link" href="{{ url_for('main.logout') }}">Logout</a>
                 </li>

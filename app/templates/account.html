@@ -14,9 +14,26 @@
         <div class="col-md-9" id="account-content">
             {% if active_tab == 'main' %}
                 <h1>Account</h1>
-                <!-- Recipe Requests -->
+                <!-- Your Recipes-->
                 <div class="mb-4">
-                    <h2>Recipe Requests</h2>
+                    <h2>Your Recipes</h2>
+                    <ul class="list-group">
+                        {% if recipes %}
+                            {% for recipe in recipes %}
+                                <li class="list-group-item">
+                                    <h5><a href="{{ url_for('main.update_recipe', recipe_id=recipe.id) }}">{{ recipe.title }}</a></h5>
+                                    <p>{{ recipe.instructions }}</p>
+                                    <small class="text-muted">Posted on: {{ recipe.date_posted }}</small>
+                                </li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item">No recipes found.</li>
+                        {% endif %}
+                    </ul>
+                </div>
+                <!-- Your Recipe Requests -->
+                <div class="mb-4">
+                    <h2>Your Recipe Requests</h2>
                     <ul class="list-group">
                         {% if recipe_requests %}
                             {% for request in recipe_requests %}
@@ -31,9 +48,9 @@
                         {% endif %}
                     </ul>
                 </div>
-                <!-- Recipe Replies -->
+                <!-- Your Replies -->
                 <div>
-                    <h2>Recipe Replies</h2>
+                    <h2>Your Replies</h2>
                     <ul class="list-group">
                         {% if recipe_replies %}
                             {% for reply in recipe_replies %}

@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, SelectField
-from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Length
+from wtforms import StringField, PasswordField, BooleanField, SubmitField, TextAreaField, SelectField, IntegerField
+from wtforms.validators import DataRequired, Email, EqualTo, ValidationError, Length, Optional
 from flask_login import current_user
 from app.models import User
 
@@ -66,3 +66,9 @@ class UpdateAccountForm(FlaskForm):
         user = User.query.filter_by(id=current_user.id).first()
         if user and not user.check_password(current_password.data):
             raise ValidationError('Current password is incorrect.')
+
+class RecipeForm(FlaskForm):
+    title = StringField('Recipe Title', validators=[DataRequired()])
+    instructions = TextAreaField('Instructions', validators=[DataRequired()])
+    ingredients = StringField('Ingredients (comma-separated)', validators=[DataRequired()])
+    request_id = IntegerField('Recipe Request ID (optional)', validators=[Optional()])
