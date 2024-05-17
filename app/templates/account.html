@@ -69,6 +69,10 @@
             {% elif active_tab == 'security' %}
                 {% include 'partials/account_security.html' %}
             {% endif %}
+            <!-- Logout Button -->
+            <div class="d-flex justify-content-center mt-4">
+                <a class="btn btn-danger text-white" href="{{ url_for('main.logout') }}">Logout</a>
+            </div>
         </div>
     </div>
 </div>
