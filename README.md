@@ -91,6 +91,7 @@ OnlyRecipes is a web application that serves as a recipe request forum. Users ca
 5. **Manage your account:** Update your account information, view your posted recipes and requests, and manage your replies.
 
 ## Project Structure
+
 onlyrecipes/
 │
 ├── app/
