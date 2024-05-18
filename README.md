@@ -90,41 +90,6 @@ OnlyRecipes is a web application that serves as a recipe request forum. Users ca
 4. **Search for recipes:** Use the search bar to find recipes based on ingredients and meal types.
 5. **Manage your account:** Update your account information, view your posted recipes and requests, and manage your replies.
 
-## Project Structure
-
-onlyrecipes/
-│
-├── app/
-│ ├── static/
-│ │ ├── css/
-│ │ ├── images/
-│ │ └── js/
-│ ├── templates/
-│ │ ├── partials/
-│ │ ├── account.html
-│ │ ├── add_recipe.html
-│ │ ├── base.html
-│ │ ├── create_reply.html
-│ │ ├── index.html
-│ │ ├── login.html
-│ │ ├── register.html
-│ │ ├── search_results.html
-│ │ ├── update_recipe.html
-│ │ ├── update_reply.html
-│ │ ├── view_recipe.html
-│ │ ├── view_reply.html
-│ │ └── view_recipe_request.html
-│ ├── init.py
-│ ├── forms.py
-│ ├── models.py
-│ ├── routes.py
-│ └── extensions.py
-├── venv/
-├── .gitignore
-├── README.md
-├── requirements.txt
-└── run.py
-
 ## Contributing
 
 We welcome contributions to enhance OnlyRecipes. To contribute:
