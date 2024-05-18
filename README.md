@@ -123,7 +123,6 @@ onlyrecipes/
 ├── README.md
 ├── requirements.txt
 └── run.py
-
 ## Contributing
 
 We welcome contributions to enhance OnlyRecipes. To contribute:
